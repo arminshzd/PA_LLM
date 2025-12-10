@@ -61,7 +61,7 @@ def format_docs(docs: list) -> str:
     
     return "\n\n".join(formatted)
 
-def create_prompt(context: str, question: str) -> str:
+def create_prompt(context: str, question: str, history: list) -> str:
     """
     Create a prompt to pass to the LLM containing the instructions, context from
     the retrieved documents, and the user's question.
@@ -74,7 +74,14 @@ def create_prompt(context: str, question: str) -> str:
         str: Prepared prompt for the LLM
     """
 
+    history_prompt = "\n".join([
+            f"Previous Q: {q}\nPrevious A: {a}" 
+            for q, a in history[-3:]  # Last 2 exchanges
+        ])
+
     prompt = f"""You are a personal assistant answering questions only using the information in the provided context.
+
+    {history_prompt}
 
     Context from relavant documents:
     {context}
@@ -92,7 +99,7 @@ def create_prompt(context: str, question: str) -> str:
 
     return prompt
 
-def query(vectorstore: Chroma, llm: OllamaLLM, question: str, k: int=3):
+def query(vectorstore: Chroma, llm: OllamaLLM, question: str, history: list, k: int=3):
     """
     RAG pipeline implementation:
     1. retrieve relavant chunks
@@ -105,6 +112,7 @@ def query(vectorstore: Chroma, llm: OllamaLLM, question: str, k: int=3):
         vectorstore (Chroma): Database's vector store created with `ingest.py`
         llm (OllamaLLM): Instance of the LLM model
         question (str): User's prompt
+        history (list): History of previous prompts
         k (int, optional): Number of sources to retrieve from the vector restore. Defaults to 3.
     """
 
@@ -122,7 +130,7 @@ def query(vectorstore: Chroma, llm: OllamaLLM, question: str, k: int=3):
     context = format_docs(retrieved)
 
     # create the LLM prompt
-    prompt = create_prompt(context, question)
+    prompt = create_prompt(context, question, history)
 
     # get LLM response
     print(f"\nAnswer:")
@@ -157,6 +165,9 @@ def main():
     vecstore = load_vecstore()
     llm = init_llm()
 
+    # history tracker
+    history = []
+
     # interactive loop
     while True:
         user_q = input("\nAsk a question (or 'quit' to exit): ").strip()
@@ -170,10 +181,11 @@ def main():
             continue
 
         try:
-            query(vecstore, llm, user_q)
+            query_res = query(vecstore, llm, user_q, history)
+            history.append([user_q, query_res['answer']])
         except Exception as e:
             print(f"\nError: {e}")
-            print("Please try rephrasing your question.")
+            print("Please try rephrasing your question.")    
 
 
 if __name__=="__main__":
