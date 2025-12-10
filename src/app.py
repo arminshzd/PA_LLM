@@ -1,5 +1,6 @@
 import streamlit as st
 from query import load_vecstore, init_llm, format_docs, create_prompt
+from utils import format_source_excerpt
 
 st.title("Virtual Personal Assistant")
 st.markdown("Ask questions about your documents and get AI-powered answers with citations.")
@@ -37,6 +38,6 @@ if st.button("Submit") and question:
             st.markdown("### Sources")
             for i, doc in enumerate(docs, 1):
                 with st.expander(f"Document {i}: {doc.metadata.get('source', 'Unknown')}"):
-                    st.write(doc.page_content)
+                    st.write(format_source_excerpt(doc.page_content))
 
             history.append((question, answer))

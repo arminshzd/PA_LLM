@@ -2,6 +2,8 @@ from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import OllamaLLM
 
+from utils import format_source_excerpt
+
 def load_vecstore(persist_dir: str="./vectorstore") -> Chroma:
     """
     load the vector store created by `ingest.py`
@@ -147,7 +149,7 @@ def query(vectorstore: Chroma, llm: OllamaLLM, question: str, history: list, k: 
         page = doc.metadata.get('page', 'N/A')
         
         print(f"\n[Document {i}] Source: {source} (Page: {page})")
-        print(f"Relevant excerpt: {doc.page_content[:200]}...")
+        print(f"Relevant excerpt: {format_source_excerpt(doc.page_content[:200])}...")
     
     return {
         'answer': answer,
