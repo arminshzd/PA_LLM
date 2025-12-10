@@ -18,10 +18,20 @@ def test_format_docs_includes_metadata():
     assert "Answer two" in formatted
 
 
-def test_create_prompt_mentions_question():
-    prompt = query.create_prompt("Context text", "What is up?")
+def test_create_prompt_mentions_question_and_history():
+    history = [
+        ("Q1", "A1"),
+        ("Q2", "A2"),
+        ("Q3", "A3"),
+        ("Q4", "A4"),
+    ]
+
+    prompt = query.create_prompt("Context text", "What is up?", history)
     assert "Context text" in prompt
     assert "What is up?" in prompt
+    assert "Previous Q: Q2" not in prompt  # trimmed to last 3 exchanges
+    assert "Previous Q: Q4" in prompt
+    assert "Previous A: A3" in prompt
 
 
 def test_load_vecstore_uses_custom_directory(monkeypatch):
@@ -89,7 +99,8 @@ def test_query_returns_answer_and_sources(monkeypatch, capsys):
     store = DummyVectorstore()
     llm = DummyLLM()
 
-    result = query.query(store, llm, "Sample question", k=1)
+    history = []
+    result = query.query(store, llm, "Sample question", history=history, k=1)
 
     captured = capsys.readouterr()
     assert "Sample question" in captured.out

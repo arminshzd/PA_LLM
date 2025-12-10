@@ -7,7 +7,7 @@ Although the data is personal, the code path demonstrates the full pipeline you 
 ## Features
 
 - Ingestion script that reads PDFs/TXT, splits them with LangChain text splitters, and stores embeddings in a persistent Chroma vector database.
-- CLI query interface plus a Streamlit-powered GUI that reload the vector store and send grounded prompts to Llama 3.2 via Ollama.
+- CLI query interface plus a Streamlit-powered GUI that reload the vector store, track recent Q&A history, and send grounded prompts to Llama 3.2 via Ollama.
 - Pytest suite that validates ingestion, retrieval, and prompt construction logic with lightweight stubs.
 - Clear separation between data preparation (`ingest.py`), inference (`query.py`), and presentation (`app.py`).
 
@@ -18,8 +18,8 @@ Although the data is personal, the code path demonstrates the full pipeline you 
 | `data/` | Place PDFs/TXT files here before running ingestion (not bundled in the repo). |
 | `vectorstore/` | Folder where the persisted Chroma DB is written; created after ingestion. |
 | `src/ingest.py` | Orchestrates the ingestion pipeline. See method breakdown below. |
-| `src/query.py` | Command-line interface for grounded question answering. |
-| `src/app.py` | Streamlit front-end that wraps the query pipeline with a lightweight UI. |
+| `src/query.py` | Command-line interface for grounded, history-aware question answering. |
+| `src/app.py` | Streamlit front-end that wraps the query pipeline, including session-level history. |
 | `src/utils.py` | Placeholder for helper functions (currently unused). |
 | `tests/test_ingest.py` | Pytest coverage for document loading, chunking, and vector store creation. |
 | `tests/test_query.py` | Tests prompt formatting, model initialization, and the query loop. |
@@ -40,13 +40,13 @@ Although the data is personal, the code path demonstrates the full pipeline you 
 - `load_vecstore(persist_dir="./vectorstore")`: Reloads the Chroma store with the same embedding function so similarity search returns vector-compatible results.
 - `init_llm()`: Spins up an Ollama client pointed at `llama3.2` (temperature 0.1) for low-variance answers.
 - `format_docs(docs)`: Converts retrieved documents into a human-readable context string, including per-document metadata (source, page).
-- `create_prompt(context, question)`: Crafts instructions that force the LLM to stay grounded in retrieved context and to cite document numbers or state when information is unavailable.
-- `query(vectorstore, llm, question, k=3)`: Implements the RAG loop—retrieve similar chunks, build prompt, invoke the LLM, print the answer, and list sources with short excerpts.
-- `main()`: CLI loop that keeps answering questions until the user types `quit`/`exit`.
+- `create_prompt(context, question, history)`: Crafts instructions that force the LLM to stay grounded in retrieved context while also adding the last few Q&A turns for conversational continuity.
+- `query(vectorstore, llm, question, history, k=3)`: Implements the RAG loop—retrieve similar chunks, build a history-aware prompt, invoke the LLM, print the answer, and list sources with short excerpts.
+- `main()`: CLI loop that keeps answering questions until the user types `quit`/`exit`, appending successful exchanges to the `history` list.
 
 ### `src/app.py`
 
-Streamlit app that caches the vector store/LLM, collects a user question, reuses the same retrieval + prompt-building logic from `query.py`, and renders answers with expandable source panels. Run it with `streamlit run src/app.py`.
+Streamlit app that caches the vector store/LLM, keeps conversational state in `st.session_state.history`, reuses the same retrieval + prompt-building logic from `query.py`, and renders answers with expandable source panels. Run it with `streamlit run src/app.py`.
 
 ## Getting Started
 

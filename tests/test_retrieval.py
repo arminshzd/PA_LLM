@@ -17,7 +17,7 @@ def test_similarity_search_outputs_snippets(monkeypatch, capsys):
         def invoke(self, prompt):
             return "stub answer"
 
-    result = query.query(DummyVectorstore(), DummyLLM(), "machine learning overview")
+    result = query.query(DummyVectorstore(), DummyLLM(), "machine learning overview", history=[])
 
     output = capsys.readouterr().out
     assert "machine learning overview" in output
