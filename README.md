@@ -1,6 +1,6 @@
 # Personal Research Assistant (RAG Example)
 
-This repository contains a small retrieval-augmented generation (RAG) pipeline that I built to showcase my ability to work with modern LLM tooling for prospective data-scientist roles. The documents in the `data/` directory (not included in this repo because they are my own publications) are ingested, chunked, embedded into a Chroma vector database, and then queried through an Ollama-hosted Llama 3.2 model.
+This repository contains a small retrieval-augmented generation (RAG) pipeline that I built to teach myself how modern LLM tooling works. The documents in the `data/` directory (not included in this repo because they are my own publications) are ingested, chunked, embedded into a Chroma vector database, and then queried through an Ollama-hosted Llama 3.2 model.
 
 Although the data is personal, the code path demonstrates the full pipeline you would follow to build a grounded Q&A assistant over any small PDF/TXT corpus and optionally expose it via a Streamlit UI.
 
